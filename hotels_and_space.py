@@ -28,7 +28,7 @@ class Decoder:
         self.connection = connect(
             host='localhost',
             user='root',
-            password='',
+            password='root',
             database='loco',
         )
 
@@ -49,9 +49,9 @@ class Decoder:
                 address,map_lat,map_lng,map_zoom,is_featured,gallery,video,policy,star_rate,
                 price, check_in_time, check_out_time, allow_full_day, sale_price, status, create_user,
                 update_user, deleted_at, created_at, updated_at, review_score, ical_import_url, enable_extra_price,
-                extra_price, min_day_before_booking, min_day_stays, enable_service_fee, service_fee, surrounding, remark, is_ostrovok, json
+                extra_price, min_day_before_booking, min_day_stays, enable_service_fee, service_fee, surrounding, remark, is_ostrovok
                 )
-                VALUES ( %s, %s, %s, %s,%s,%s,%s,%s,%s,%s,%s, %s, %s, %s,%s,%s,%s,%s,%s,%s,%s, %s, %s, %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                VALUES ( %s, %s, %s, %s,%s,%s,%s,%s,%s,%s,%s, %s, %s, %s,%s,%s,%s,%s,%s,%s,%s, %s, %s, %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 """
             data = [(
                 data.get('name', None),  # title
@@ -84,7 +84,6 @@ class Decoder:
                 # review_score, ical_import_url, enable_extra_price, extra_price, min_day_before_booking, min_day_stays, enable_service_fee, service_fee, surrounding, remark,
                 None, None, None, None, None, None, None, None, None, None,
                 1,  # is_ostrovok
-                json.dumps(data, ensure_ascii=True).encode('utf8')
             )]
 
         else:
