@@ -32,6 +32,7 @@ class Decoder:
             password='root',
             database='loco',
         )
+        print('Cтарт: ' + time.strftime('%Y-%m-%d %H:%M:%S'))
 
         # self.delete_table_data()
 
@@ -44,33 +45,38 @@ class Decoder:
 
         # print(data['country_name']['ru'], '\n')
 
-        query = """
-            INSERT INTO bravo_locations
-            (id, name,content,slug,image_id,map_lat,map_lng,map_zoom,
-            status,_lft,_rgt,parent_id,create_user,update_user,deleted_at,
-            origin_id,lang,created_at,updated_at,banner_image_id,trip_ideas,is_ostrovok)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-        """
+        # try:
+        if (data['type'] == 'City'):
+            query = """
+                    INSERT INTO bravo_locations
+                    (id, name,content,slug,image_id,map_lat,map_lng,map_zoom,
+                    status,_lft,_rgt,parent_id,create_user,update_user,deleted_at,
+                    origin_id,lang,created_at,updated_at,banner_image_id,trip_ideas,is_ostrovok)
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                """
 
-        data = [(
-            data['id'],
-            data['name']['ru'],
-            None,
-            slugify(data['name']['en'].lower()),
-            None,
-            data['center']['latitude'],
-            data['center']['longitude'],
-            13,
-            'publish', '0', '0', None, 1, None, None,
-            None, None,
-            time.strftime('%Y-%m-%d %H:%M:%S'),
-            time.strftime('%Y-%m-%d %H:%M:%S'),
-            None, None, 1
-        )]
+            data = [(
+                data['id'],
+                data['name']['ru'],
+                None,
+                slugify(data['name']['en'].lower()),
+                None,
+                data['center']['latitude'],
+                data['center']['longitude'],
+                13,
+                'publish', '0', '0', None, 1, None, None,
+                None, None,
+                time.strftime('%Y-%m-%d %H:%M:%S'),
+                time.strftime('%Y-%m-%d %H:%M:%S'),
+                None, None, 1,
+            )]
 
-        with self.connection.cursor() as cursor:
-            cursor.executemany(query, data)
-            self.connection.commit()
+            with self.connection.cursor() as cursor:
+                cursor.executemany(query, data)
+                self.connection.commit()
+        # except:
+        #     print('Нет ключа city')
+        #     return False
 
     async def _process_raw_hotels(self) -> None:
         """
@@ -111,7 +117,7 @@ class Decoder:
                 hotel_data = json.loads(h)
                 self.handler_request_to_db(hotel_data)
             except:
-                print('Ошибка JSON')
+                print('Невалидный JSON')
 
             # Тут можно применить свой код, в моем случае это вставка в БД построчно
 
@@ -151,6 +157,7 @@ class Decoder:
                     await self.sem.acquire()
                     # запуск
                     asyncio.create_task(self._process_chunk(chunk))
+            print('Стоп: ' + time.strftime('%Y-%m-%d %H:%M:%S'))
 
 
 if __name__ == "__main__":

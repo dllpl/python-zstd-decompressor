@@ -19,6 +19,7 @@ import json
 from asyncio import Semaphore
 from mysql.connector import connect, Error
 import time
+from slugify import slugify
 
 
 class Decoder:
@@ -41,9 +42,10 @@ class Decoder:
 
     def handler_request_to_db(self, data) -> None:
 
-        query = ""
+        query1 = ""
+        query2 = ""
         if data['kind'] == 'Hotel':
-            query = """
+            query1 = """
                 INSERT INTO bravo_hotels
                 (title, slug, content, image_id, banner_image_id, location_id,
                 address,map_lat,map_lng,map_zoom,is_featured,gallery,video,policy,star_rate,
@@ -53,7 +55,7 @@ class Decoder:
                 )
                 VALUES ( %s, %s, %s, %s,%s,%s,%s,%s,%s,%s,%s, %s, %s, %s,%s,%s,%s,%s,%s,%s,%s, %s, %s, %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 """
-            data = [(
+            data1 = [(
                 data.get('name', None),  # title
                 data.get('id', None),  # slug
                 self._description_struct_handler(
@@ -86,12 +88,42 @@ class Decoder:
                 1,  # is_ostrovok
             )]
 
+            query2 = """
+                INSERT IGNORE INTO bravo_locations
+                    (id, name,content,slug,image_id,map_lat,map_lng,map_zoom,
+                    status,_lft,_rgt,parent_id,create_user,update_user,deleted_at,
+                    origin_id,lang,created_at,updated_at,banner_image_id,trip_ideas,is_ostrovok)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            """
+
+            try:
+                data2 = [(
+                    data['region']['id'],
+                    data['region']['name'],
+                    None,
+                    slugify(data['region']['name'].lower()),
+                    None,
+                    None,
+                    None,
+                    13,
+                    'publish', '0', '0', None, 1, None, None,
+                    None, None,
+                    time.strftime('%Y-%m-%d %H:%M:%S'),
+                    time.strftime('%Y-%m-%d %H:%M:%S'),
+                    None, None, 1,
+                )]
+                with self.connection.cursor() as cursor:
+                    cursor.executemany(query2, data2)
+                    self.connection.commit()
+            except:
+                return False
+
+            with self.connection.cursor() as cursor:
+                cursor.executemany(query1, data1)
+                self.connection.commit()
+
         else:
             table = 'bravo_spaces'
-
-        with self.connection.cursor() as cursor:
-            cursor.executemany(query, data)
-            self.connection.commit()
 
         # try:
         #     self.connection.cursor().executemany(query, data)
@@ -195,4 +227,4 @@ class Decoder:
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     d = Decoder(semaphore_value=10)
-    loop.run_until_complete(d.parse_dump("partner_feed_ru.json.zst"))
+    loop.run_until_complete(d.parse_dump("dumps/partner_feed_ru.json.zst"))
