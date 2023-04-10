@@ -22,14 +22,14 @@ query = """
 """
 invalid_json_counter = 0
 
-print('Cтарт: ' + time.strftime('%Y-%m-%d %H:%M:%S'))
+print('[' + time.strftime('%Y-%m-%d %H:%M:%S') + ']: ' + 'Старт')
 
 with connection.cursor() as cursor:
     cursor.execute("""DELETE FROM bravo_review WHERE is_ostrovok = 1""")
     connection.commit()
 
-print('Удалили старые отзывы, запуск процесса добавления новых: ' +
-      time.strftime('%Y-%m-%d %H:%M:%S'))
+print('[' + time.strftime('%Y-%m-%d %H:%M:%S') + ']: ' +
+      'Удалили старые отзывы, запуск процесса добавления новых')
 
 
 def save_to_db(data: dict) -> bool:
@@ -54,8 +54,8 @@ def prepareData(slug: str, reviews: dict) -> bool:
                 review['review_plus'],
                 int(review['rating']),
                 None,
-                'publish',
-                time.strftime('%Y-%m-%d %H:%M:%S'),
+                'approved',
+                time.strftime(review['created'] + ' %H:%M:%S'),
                 1,
                 1,
                 None,
@@ -88,4 +88,4 @@ with gzip.open('feed_ru.json.gz', 'r') as fin:
             invalid_json_counter += 1
             continue
 
-print('Стоп: ' + time.strftime('%Y-%m-%d %H:%M:%S'))
+print('[' + time.strftime('%Y-%m-%d %H:%M:%S') + ']: ' + 'Стоп, отзывы добавлены')
