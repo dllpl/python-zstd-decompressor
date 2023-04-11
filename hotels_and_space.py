@@ -40,25 +40,27 @@ class Decoder:
         query = """DELETE FROM bravo_hotels WHERE is_ostrovok = 1"""
         self.connection.cursor().execute(query)
         self.connection.commit()
+        query = """DELETE FROM bravo_spaces WHERE is_ostrovok = 1"""
+        self.connection.cursor().execute(query)
+        self.connection.commit()
         print('[' + time.strftime('%Y-%m-%d %H:%M:%S') + ']: ' +
               'Удалили старые объекты, запуск процесса добавления новых')
 
     def handler_request_to_db(self, data) -> None:
-
-        query1 = ""
-        query2 = ""
-        if data['kind'] == 'Hotel':
-            query1 = """
-                INSERT INTO bravo_hotels
-                (title, slug, content, image_id, banner_image_id, location_id,
-                address,map_lat,map_lng,map_zoom,is_featured,gallery,video,policy,star_rate,
-                price, check_in_time, check_out_time, allow_full_day, sale_price, status, create_user,
-                update_user, deleted_at, created_at, updated_at, review_score, ical_import_url, enable_extra_price,
-                extra_price, min_day_before_booking, min_day_stays, enable_service_fee, service_fee, surrounding, remark, is_ostrovok
-                )
-                VALUES ( %s, %s, %s, %s,%s,%s,%s,%s,%s,%s,%s, %s, %s, %s,%s,%s,%s,%s,%s,%s,%s, %s, %s, %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-                """
-            data1 = [(
+        query_hotel = ""
+        query_space = ""
+        if (data['kind'] != 'Apartment'):
+            query_hotel = """
+                    INSERT INTO bravo_hotels
+                    (title, slug, content, image_id, banner_image_id, location_id,
+                    address,map_lat,map_lng,map_zoom,is_featured,gallery,video,policy,star_rate,
+                    price, check_in_time, check_out_time, allow_full_day, sale_price, status, create_user,
+                    update_user, deleted_at, created_at, updated_at, review_score, ical_import_url, enable_extra_price,
+                    extra_price, min_day_before_booking, min_day_stays, enable_service_fee, service_fee, surrounding, remark, is_ostrovok,serp_filters
+                    )
+                    VALUES ( %s, %s, %s, %s,%s,%s,%s,%s,%s,%s,%s, %s, %s, %s,%s,%s,%s,%s,%s,%s,%s, %s, %s, %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                    """
+            data_hotel = [(
                 data.get('name', None),  # title
                 data.get('id', None),  # slug
                 self._description_struct_handler(
@@ -89,50 +91,131 @@ class Decoder:
                 # review_score, ical_import_url, enable_extra_price, extra_price, min_day_before_booking, min_day_stays, enable_service_fee, service_fee, surrounding, remark,
                 None, None, None, None, None, None, None, None, None, None,
                 1,  # is_ostrovok
+                json.dumps(self.check_exist('serp_filters', data))
             )]
-
-            # query2 = """
-            #     INSERT IGNORE INTO bravo_locations
-            #         (id, name,content,slug,image_id,map_lat,map_lng,map_zoom,
-            #         status,_lft,_rgt,parent_id,create_user,update_user,deleted_at,
-            #         origin_id,lang,created_at,updated_at,banner_image_id,trip_ideas,is_ostrovok)
-            #     VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-            # """
-
-            # try:
-            #     data2 = [(
-            #         data['region']['id'],
-            #         data['region']['name'],
-            #         None,
-            #         slugify(data['region']['name'].lower()),
-            #         None,
-            #         None,
-            #         None,
-            #         13,
-            #         'publish', '0', '0', None, 1, None, None,
-            #         None, None,
-            #         time.strftime('%Y-%m-%d %H:%M:%S'),
-            #         time.strftime('%Y-%m-%d %H:%M:%S'),
-            #         None, None, 1,
-            #     )]
-            #     with self.connection.cursor() as cursor:
-            #         cursor.executemany(query2, data2)
-            #         self.connection.commit()
-            # except:
-            #     return False
-
             with self.connection.cursor() as cursor:
-                cursor.executemany(query1, data1)
+                cursor.executemany(query_hotel, data_hotel)
+                self.connection.commit()
+        else:
+            query_space = """
+                INSERT INTO bravo_spaces
+                (
+                    title,
+                    slug,
+                    content,
+                    image_id,
+                    banner_image_id,
+                    location_id,
+                    address,
+                    map_lat,
+                    map_lng,
+                    map_zoom,
+                    is_featured,
+                    gallery,
+                    video,
+                    faqs,
+                    price,
+                    sale_price,
+                    is_instant,
+                    allow_children,
+                    allow_infant,
+                    max_guests,
+                    bed,
+                    bathroom,
+                    square,
+                    enable_extra_price,
+                    extra_price,
+                    discount_by_days,
+                    status,
+                    default_state,
+                    create_user,
+                    update_user,
+                    deleted_at,
+                    created_at,
+                    updated_at,
+                    review_score,
+                    ical_import_url,
+                    kv_api_import_id,
+                    min_day_before_booking,
+                    min_day_stays,
+                    enable_service_fee,
+                    service_fee,
+                    surrounding,
+                    check_in,
+                    check_out,
+                    remark,
+                    `reads`,
+                    vrefid,
+                    is_ostrovok,
+                    serp_filters
+                )
+                VALUES ( %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            """
+
+            data_space = [(
+                data.get('name', None),  # title
+                data.get('id', None),  # slug
+                self._description_struct_handler(
+                    data['description_struct']),  # content
+                self.check_exist(0, data['images']),  # image_id
+                self.check_exist(1, data['images']),  # banner_image_id
+                data['region']['id'],  # location_id
+                data['address'],  # address
+                data['latitude'],  # map_lat
+                data['longitude'],  # map_lng
+                12,  # map_zoom
+                None,  # is_featured
+                self.check_if_not_empty(data['images']),  # gallery
+                None, None, None, None, None, None, None, None, None, None, None, None, None, None,
+                'publish',  # status
+                None,  # default_state
+                1,  # create_user
+                1,  # update_user
+                None,  # deleted_at
+                time.strftime('%Y-%m-%d %H:%M:%S'),  # created_at
+                time.strftime('%Y-%m-%d %H:%M:%S'),  # updated_at
+                # review_score, #surrounding
+                None, None, None, None, None, None, None, None,
+                data['check_in_time'],  # check_in_time
+                data['check_out_time'],  # check_out_time
+                None,
+                1,
+                1,
+                1,  # is_ostrovok
+                json.dumps(self.check_exist('serp_filters', data))
+            )]
+            with self.connection.cursor() as cursor:
+                cursor.executemany(query_space, data_space)
                 self.connection.commit()
 
-        else:
-            table = 'bravo_spaces'
-
-        # try:
-        #     self.connection.cursor().executemany(query, data)
-        #     self.connection.commit()
-        # except:
-        #     return print('Ошибка при добавлении в базу:', data)
+        query_location = """
+                INSERT IGNORE INTO bravo_locations
+                    (id, name,content,slug,image_id,map_lat,map_lng,map_zoom,
+                    status,_lft,_rgt,parent_id,create_user,update_user,deleted_at,
+                    origin_id,lang,created_at,updated_at,banner_image_id,trip_ideas,is_ostrovok)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            """
+        try:
+            data_location = [(
+                data['region']['id'],
+                data['region']['name'],
+                None,
+                slugify(data['region']['name'].lower()),
+                None,
+                None,
+                None,
+                13,
+                'publish', '0', '0', None, 1, None, None,
+                None, None,
+                time.strftime('%Y-%m-%d %H:%M:%S'),
+                time.strftime('%Y-%m-%d %H:%M:%S'),
+                None, None, 1,
+            )]
+            with self.connection.cursor() as cursor:
+                cursor.executemany(query_location, data_location)
+                self.connection.commit()
+        except:
+            return False
 
     async def _process_raw_hotels(self) -> None:
         """
@@ -145,12 +228,15 @@ class Decoder:
         ]
         await self._process_hotel(*raw_hotels)
 
-    def _description_struct_handler(self, arr) -> str:
+    def _description_struct_handler(self, arr):
         str = None
         try:
-            str = arr[0]['paragraphs'][0] + '<br><br>'
-            str += arr[1]['paragraphs'][1] + '<br><br>'
-            str += arr[2]['paragraphs'][2] + '<br><br>'
+            if (len(arr[0]['paragraphs'][0]) > 0):
+                str = arr[0]['paragraphs'][0] + '<br><br>'
+            if (len(arr[1]['paragraphs'][1]) > 0):
+                str += arr[1]['paragraphs'][1] + '<br><br>'
+            if (len(arr[2]['paragraphs'][2]) > 0):
+                str += arr[2]['paragraphs'][2] + '<br><br>'
             return str
         except:
             return str
@@ -172,22 +258,10 @@ class Decoder:
             hotel_data = json.loads(h)
             # Тут можно применить свой код, в моем случае это вставка в БД построчно
 
+            if (self.check_exist(0, hotel_data['images']) == None or self.check_exist(1, hotel_data['images']) == None):
+                continue
+
             self.handler_request_to_db(hotel_data)
-
-            # query = """
-            # INSERT INTO bravo_spaces
-            # (title, slug, content, image_id, banner_image_id, location_id,
-            # address,map_lat,map_lng,map_zoom,is_featured,gallery,video,faqs,
-            # price,sale_price,is_instant,allow_children,allow_infant, max_guests,
-            # bed, bathroom,square,enable_extra_price,extra_price,discount_by_days,
-            # status,default_state,create_user,update_user,deleted_at,created_at,updated_at,
-            # review_score,ical_import_url,min_day_before_booking,min_day_stays, enable_service_fee,
-            # service_fee,surrounding,check_in,check_out,remark,reads,vrefid
-            # )
-            # VALUES ( %s, %s)
-            # """
-
-            # self.cursor.execute(query, data)
 
     async def _process_chunk(self, chunk: bytes) -> None:
         raw_data = chunk.decode("utf-8", 'ignore')

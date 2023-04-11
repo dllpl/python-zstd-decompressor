@@ -9,7 +9,7 @@ from mysql.connector import connect, Error
 connection = connect(
     host='localhost',
     user='root',
-    password='root',
+    password='',
     database='loco',
 )
 
@@ -36,10 +36,17 @@ def setReviewScore(slug: str, review_score) -> bool:
     try:
         with connection.cursor() as cursor:
             cursor.execute("""
+        UPDATE bravo_spaces
+        SET review_score=%s
+        WHERE slug=%s
+        """, (review_score / 2, slug))
+        connection.commit()
+        with connection.cursor() as cursor:
+            cursor.execute("""
         UPDATE bravo_hotels
         SET review_score=%s
         WHERE slug=%s
-        """, (review_score, slug))
+        """, (review_score / 2, slug))
         connection.commit()
         return True
     except:
@@ -60,25 +67,28 @@ def prepareData(slug: str, reviews: dict, rating) -> bool:
 
     for review in reviews:
         try:
-            save_to_db([(
-                None,
-                slug,
-                None,
-                review['review_plus'][:35] + '...',  # title
-                review['review_plus'],
-                int(review['rating']),
-                None,
-                'approved',
-                time.strftime(review['created'] + ' %H:%M:%S'),
-                1,
-                1,
-                None,
-                None,
-                time.strftime(review['created'] + ' %H:%M:%S'),
-                time.strftime(review['created'] + ' %H:%M:%S'),
-                1,
-                1
-            )])
+            if (review['review_plus'] and len(review['review_plus'])):
+                save_to_db([(
+                    None,
+                    slug,
+                    None,
+                    None,
+                    review['review_plus'],
+                    int(review['rating']) / 2,
+                    None,
+                    'approved',
+                    time.strftime(review['created'] + ' %H:%M:%S'),
+                    None,
+                    None,
+                    None,
+                    None,
+                    time.strftime(review['created'] + ' %H:%M:%S'),
+                    time.strftime(review['created'] + ' %H:%M:%S'),
+                    1,
+                    1
+                )])
+            else:
+                continue
         except:
             continue
 
