@@ -9,7 +9,7 @@ from mysql.connector import connect, Error
 connection = connect(
     host='localhost',
     user='root',
-    password='',
+    password='root',
     database='loco',
 )
 
@@ -32,6 +32,20 @@ print('[' + time.strftime('%Y-%m-%d %H:%M:%S') + ']: ' +
       'Удалили старые отзывы, запуск процесса добавления новых')
 
 
+def setReviewScore(slug: str, review_score) -> bool:
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+        UPDATE bravo_hotels
+        SET review_score=%s
+        WHERE slug=%s
+        """, (review_score, slug))
+        connection.commit()
+        return True
+    except:
+        return False
+
+
 def save_to_db(data: dict) -> bool:
     try:
         with connection.cursor() as cursor:
@@ -42,7 +56,7 @@ def save_to_db(data: dict) -> bool:
         return False
 
 
-def prepareData(slug: str, reviews: dict) -> bool:
+def prepareData(slug: str, reviews: dict, rating) -> bool:
 
     for review in reviews:
         try:
@@ -67,10 +81,12 @@ def prepareData(slug: str, reviews: dict) -> bool:
             )])
         except:
             continue
+
+    setReviewScore(slug, rating)
     return True
 
 
-with gzip.open('feed_ru.json.gz', 'r') as fin:
+with gzip.open('dumps/feed_ru.json.gz', 'r') as fin:
     for line in fin:
         try:
             raw_data = line.decode("utf-8", 'ignore')
@@ -81,7 +97,7 @@ with gzip.open('feed_ru.json.gz', 'r') as fin:
             slug = first(data)
 
             if (data[slug]):
-                prepareData(slug, data[slug]['reviews'])
+                prepareData(slug, data[slug]['reviews'], data[slug]['rating'])
             else:
                 continue
         except:
