@@ -29,7 +29,7 @@ class Decoder:
         self.connection = connect(
             host='localhost',
             user='root',
-            password='',
+            password='root',
             database='loco',
         )
         print('[' + time.strftime('%Y-%m-%d %H:%M:%S') + ']: ' + 'Старт')

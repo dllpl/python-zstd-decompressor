@@ -9,7 +9,7 @@ from mysql.connector import connect, Error
 connection = connect(
     host='localhost',
     user='root',
-    password='',
+    password='root',
     database='loco',
 )
 
