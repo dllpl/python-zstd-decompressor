@@ -9,7 +9,7 @@ from mysql.connector import connect, Error
 connection = connect(
     host='localhost',
     user='root',
-    password='root',
+    password='',
     database='loco',
 )
 
@@ -39,14 +39,14 @@ def setReviewScore(slug: str, review_score) -> bool:
         UPDATE bravo_spaces
         SET review_score=%s
         WHERE slug=%s
-        """, (review_score / 2, slug))
+        """, (int(review_score) / 2, slug))
         connection.commit()
         with connection.cursor() as cursor:
             cursor.execute("""
         UPDATE bravo_hotels
         SET review_score=%s
         WHERE slug=%s
-        """, (review_score / 2, slug))
+        """, (int(review_score) / 2, slug))
         connection.commit()
         return True
     except:
