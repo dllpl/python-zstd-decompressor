@@ -29,7 +29,7 @@ class Decoder:
         self.connection = connect(
             host='localhost',
             user='root',
-            password='',
+            password='root',
             database='loco',
         )
         print('[' + time.strftime('%Y-%m-%d %H:%M:%S') + ']: ' + 'Старт')
@@ -96,97 +96,97 @@ class Decoder:
             with self.connection.cursor() as cursor:
                 cursor.executemany(query_hotel, data_hotel)
                 self.connection.commit()
-        # else:
-        #     query_space = """
-        #         INSERT INTO bravo_spaces
-        #         (
-        #             title,
-        #             slug,
-        #             content,
-        #             image_id,
-        #             banner_image_id,
-        #             location_id,
-        #             address,
-        #             map_lat,
-        #             map_lng,
-        #             map_zoom,
-        #             is_featured,
-        #             gallery,
-        #             video,
-        #             faqs,
-        #             price,
-        #             sale_price,
-        #             is_instant,
-        #             allow_children,
-        #             allow_infant,
-        #             max_guests,
-        #             bed,
-        #             bathroom,
-        #             square,
-        #             enable_extra_price,
-        #             extra_price,
-        #             discount_by_days,
-        #             status,
-        #             default_state,
-        #             create_user,
-        #             update_user,
-        #             deleted_at,
-        #             created_at,
-        #             updated_at,
-        #             review_score,
-        #             ical_import_url,
-        #             kv_api_import_id,
-        #             min_day_before_booking,
-        #             min_day_stays,
-        #             enable_service_fee,
-        #             service_fee,
-        #             surrounding,
-        #             check_in,
-        #             check_out,
-        #             remark,
-        #             `reads`,
-        #             vrefid,
-        #             is_ostrovok,
-        #             serp_filters
-        #         )
-        #         VALUES ( %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-        #     """
+        else:
+            query_space = """
+                INSERT INTO bravo_spaces
+                (
+                    title,
+                    slug,
+                    content,
+                    image_id,
+                    banner_image_id,
+                    location_id,
+                    address,
+                    map_lat,
+                    map_lng,
+                    map_zoom,
+                    is_featured,
+                    gallery,
+                    video,
+                    faqs,
+                    price,
+                    sale_price,
+                    is_instant,
+                    allow_children,
+                    allow_infant,
+                    max_guests,
+                    bed,
+                    bathroom,
+                    square,
+                    enable_extra_price,
+                    extra_price,
+                    discount_by_days,
+                    status,
+                    default_state,
+                    create_user,
+                    update_user,
+                    deleted_at,
+                    created_at,
+                    updated_at,
+                    review_score,
+                    ical_import_url,
+                    kv_api_import_id,
+                    min_day_before_booking,
+                    min_day_stays,
+                    enable_service_fee,
+                    service_fee,
+                    surrounding,
+                    check_in,
+                    check_out,
+                    remark,
+                    `reads`,
+                    vrefid,
+                    is_ostrovok,
+                    serp_filters
+                )
+                VALUES ( %s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            """
 
-        #     data_space = [(
-        #         data.get('name', None),  # title
-        #         data.get('id', None),  # slug
-        #         self._description_struct_handler(
-        #             data['description_struct']),  # content
-        #         self.check_exist(0, data['images']),  # image_id
-        #         self.check_exist(1, data['images']),  # banner_image_id
-        #         data['region']['id'],  # location_id
-        #         data['address'],  # address
-        #         data['latitude'],  # map_lat
-        #         data['longitude'],  # map_lng
-        #         12,  # map_zoom
-        #         None,  # is_featured
-        #         self.check_if_not_empty(data['images']),  # gallery
-        #         None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-        #         'publish',  # status
-        #         None,  # default_state
-        #         1,  # create_user
-        #         1,  # update_user
-        #         None,  # deleted_at
-        #         time.strftime('%Y-%m-%d %H:%M:%S'),  # created_at
-        #         time.strftime('%Y-%m-%d %H:%M:%S'),  # updated_at
-        #         # review_score, #surrounding
-        #         None, None, None, None, None, None, None, None,
-        #         data['check_in_time'],  # check_in_time
-        #         data['check_out_time'],  # check_out_time
-        #         None,
-        #         1,
-        #         1,
-        #         1,  # is_ostrovok
-        #         json.dumps(self.check_exist('serp_filters', data))
-        #     )]
-        #     with self.connection.cursor() as cursor:
-        #         cursor.executemany(query_space, data_space)
-        #         self.connection.commit()
+            data_space = [(
+                data.get('name', None),  # title
+                data.get('id', None),  # slug
+                self._description_struct_handler(
+                    data['description_struct']),  # content
+                self.check_exist(0, data['images']),  # image_id
+                self.check_exist(1, data['images']),  # banner_image_id
+                data['region']['id'],  # location_id
+                data['address'],  # address
+                data['latitude'],  # map_lat
+                data['longitude'],  # map_lng
+                12,  # map_zoom
+                None,  # is_featured
+                self.check_if_not_empty(data['images']),  # gallery
+                None, None, None, None, None, None, None, None, None, None, None, None, None, None,
+                'publish',  # status
+                None,  # default_state
+                1,  # create_user
+                1,  # update_user
+                None,  # deleted_at
+                time.strftime('%Y-%m-%d %H:%M:%S'),  # created_at
+                time.strftime('%Y-%m-%d %H:%M:%S'),  # updated_at
+                # review_score, #surrounding
+                None, None, None, None, None, None, None, None,
+                data['check_in_time'],  # check_in_time
+                data['check_out_time'],  # check_out_time
+                None,
+                1,
+                1,
+                1,  # is_ostrovok
+                json.dumps(self.check_exist('serp_filters', data))
+            )]
+            with self.connection.cursor() as cursor:
+                cursor.executemany(query_space, data_space)
+                self.connection.commit()
 
         query_location = """
                 INSERT IGNORE INTO bravo_locations

@@ -9,7 +9,7 @@ from mysql.connector import connect, Error
 connection = connect(
     host='localhost',
     user='root',
-    password='',
+    password='root',
     database='loco',
 )
 
@@ -17,8 +17,8 @@ query = """
         INSERT INTO bravo_review
         (object_id,object_slug,object_model,title,content,rate_number,author_ip,
         status,publish_date,create_user,update_user,deleted_at,	lang,created_at,
-        updated_at,vendor_id,is_ostrovok)
-        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        updated_at,vendor_id,is_ostrovok, author)
+        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
 """
 invalid_json_counter = 0
 
@@ -67,7 +67,7 @@ def prepareData(slug: str, reviews: dict, rating) -> bool:
 
     for review in reviews:
         try:
-            if (review['review_plus'] and len(review['review_plus'])):
+            if (review['review_plus'] and len(review['review_plus']) and len(review['author'])):
                 save_to_db([(
                     None,
                     slug,
@@ -85,7 +85,8 @@ def prepareData(slug: str, reviews: dict, rating) -> bool:
                     time.strftime(review['created'] + ' %H:%M:%S'),
                     time.strftime(review['created'] + ' %H:%M:%S'),
                     1,
-                    1
+                    1,
+                    review['author']
                 )])
             else:
                 continue
